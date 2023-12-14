@@ -1,18 +1,18 @@
 import { ConsiderationItem } from "@opensea/seaport-js/lib/types";
-import { OrderV2, ProtocolData, QueryCursors } from "../orders/types";
 import {
-  OpenSeaAsset,
-  OpenSeaAssetBundle,
-  OpenSeaCollection,
-  OpenSeaFungibleToken,
-} from "../types";
+  OrderType,
+  OrderV2,
+  ProtocolData,
+  QueryCursors,
+} from "../orders/types";
+import { OpenSeaCollection } from "../types";
 
 /**
  * Response from OpenSea API for building an offer.
  * @category API Response Types
  */
 export type BuildOfferResponse = {
-  /** A portion of the parameters needed to sumbit a criteria offer, i.e. collection offer. */
+  /** A portion of the parameters needed to submit a criteria offer, i.e. collection offer. */
   partialParameters: PartialParameters;
 };
 
@@ -46,20 +46,56 @@ export type GetCollectionResponse = {
 };
 
 /**
- * Collection Offer type.
+ * Base Order type shared between Listings and Offers.
  * @category API Models
  */
-export type Offer = {
+export type Order = {
   /** Offer Identifier */
   order_hash: string;
   /** Chain the offer exists on */
   chain: string;
-  /** Defines which NFTs meet the criteria to fulfill the offer. */
-  criteria: Criteria;
   /** The protocol data for the order. Only 'seaport' is currently supported. */
   protocol_data: ProtocolData;
   /** The contract address of the protocol. */
   protocol_address: string;
+  /** The price of the order. */
+  price: Price;
+};
+
+/**
+ * Offer type.
+ * @category API Models
+ */
+export type Offer = Order;
+
+/**
+ * Collection Offer type.
+ * @category API Models
+ */
+export type CollectionOffer = Offer & {
+  /** Defines which NFTs meet the criteria to fulfill the offer. */
+  criteria: Criteria;
+};
+
+/**
+ * Price response.
+ * @category API Models
+ */
+export type Price = {
+  current: {
+    currency: string;
+    decimals: number;
+    value: string;
+  };
+};
+
+/**
+ * Listing order type.
+ * @category API Models
+ */
+export type Listing = Order & {
+  /** The order type of the listing. */
+  type: OrderType;
 };
 
 /**
@@ -68,7 +104,7 @@ export type Offer = {
  */
 export type ListCollectionOffersResponse = {
   /** List of {@link Offer} */
-  offers: Offer[];
+  offers: CollectionOffer[];
 };
 
 /**
@@ -92,21 +128,6 @@ export type GetNFTResponse = {
 };
 
 /**
- * Response from OpenSea API for fetching assets.
- * @category API Response Types
- */
-export type GetAssetsResponse = {
-  /** List of {@link OpenSeaAsset} */
-  assets: OpenSeaAsset[];
-  /** Estimated Total Count of Assets which OpenSea has. */
-  estimatedCount: number;
-  /** Cursor for next page of results. */
-  next: string | undefined;
-  /** This field is no longer returned and always null. */
-  previous: string | undefined;
-};
-
-/**
  * Response from OpenSea API for fetching Orders.
  * @category API Response Types
  */
@@ -116,24 +137,40 @@ export type GetOrdersResponse = QueryCursors & {
 };
 
 /**
- * Response from OpenSea API for fetching payment tokens.
+ * Base query cursors response from OpenSea API.
  * @category API Response Types
  */
-export type GetPaymentTokensResponse = {
-  /** List of {@link OpenSeaFungibleToken} */
-  tokens: OpenSeaFungibleToken[];
+export type QueryCursorsV2 = {
+  next?: string;
 };
 
 /**
- * Response from OpenSea API for fetching bundles.
+ * Response from OpenSea API for fetching offers.
  * @category API Response Types
  */
-export type GetBundlesResponse = {
-  /** List of {@link OpenSeaAssetBundle} */
-  bundles: OpenSeaAssetBundle[];
-  /** Estimated Total Count of Bundles which OpenSea has. */
-  estimatedCount: number;
+export type GetOffersResponse = QueryCursorsV2 & {
+  offers: Offer[];
 };
+
+/**
+ * Response from OpenSea API for fetching listings.
+ * @category API Response Types
+ */
+export type GetListingsResponse = QueryCursorsV2 & {
+  listings: Listing[];
+};
+
+/**
+ * Response from OpenSea API for fetching a best offer.
+ * @category API Response Types
+ */
+export type GetBestOfferResponse = Offer | CollectionOffer;
+
+/**
+ * Response from OpenSea API for fetching a best listing.
+ * @category API Response Types
+ */
+export type GetBestListingResponse = Listing;
 
 /**
  * NFT type returned by OpenSea API.
